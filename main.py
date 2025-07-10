@@ -7,136 +7,126 @@ app = Flask(__name__)
 ACCESS_KEY = "HCO-KEY-8420611159"
 authenticated_clients = set()
 
-# ===== TEMPLATES =====
+# ===== HTML DASHBOARD =====
 login_html = '''
-<head>
-  <title>HCO-InfinityRAT Login</title>
-  <style>
-    body { background: #0f0f0f; color: white; font-family: Arial; text-align: center; padding-top: 100px; }
-    input { padding: 10px; margin: 10px; }
-    form { background: #1c1c1c; display: inline-block; padding: 20px; border-radius: 10px; }
-  </style>
-</head>
-<body>
-  <h2>🔐 Enter Access Key</h2>
-  <form method="POST">
-    <input type="password" name="key" placeholder="Access Key" required><br>
+<head><title>HCO-InfinityRAT</title></head>
+<h2>🔐 Enter Access Key</h2>
+<form method="POST">
+    <input type="password" name="key" placeholder="Access Key" required>
     <input type="submit" value="Unlock">
-  </form>
-  <p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your key.</p>
-</body>
+</form>
+<p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your key.</p>
 '''
 
 panel_html = '''
+<!DOCTYPE html>
+<html>
 <head>
-  <title>HCO-InfinityRAT Dashboard</title>
-  <link rel="icon" href="https://i.imgur.com/Vh3Yh4B.png">
-  <style>
-    body {
-      margin: 0; padding: 0;
-      background: url('https://i.imgur.com/Vh3Yh4B.png') no-repeat center center fixed;
-      background-size: cover;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      color: white;
-    }
-    .overlay {
-      background-color: rgba(0, 0, 0, 0.8);
-      padding: 50px 20px;
-      min-height: 100vh;
-    }
-    h1 { margin-bottom: 40px; }
-    .btn {
-      display: inline-block;
-      margin: 15px;
-      padding: 15px 25px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      background-color: #1f1f1f;
-      text-decoration: none;
-      transition: background 0.3s;
-    }
-    .btn:hover { background-color: #333; }
-  </style>
+    <title>HCO-InfinityRAT Panel</title>
+    <style>
+        body {
+            background-image: url('https://i.imgur.com/Vh3Yh4B.png');
+            background-size: cover;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 25px;
+            margin: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #333;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .button:hover {
+            background-color: #555;
+        }
+    </style>
 </head>
 <body>
-  <div class="overlay">
-    <h1>🚀 Hackers Colony InfinityRAT</h1>
-    <a class="btn" href="/gps">📍 GPS</a>
-    <a class="btn" href="/files">📁 Files</a>
-    <a class="btn" href="/calls">📞 Call Logs</a>
-    <a class="btn" href="/sms">💬 SMS</a>
-    <a class="btn" href="/webcam/front">📷 Front Cam</a>
-    <a class="btn" href="/webcam/back">📷 Back Cam</a>
-    <br><br>
-    <a href="/logout" style="color:#ccc;">🚪 Logout</a>
-  </div>
+    <h1>🚀 HCO-InfinityRAT Control Panel</h1>
+    <a class="button" href="/gps">📍 GPS Location</a>
+    <a class="button" href="/webcam">📷 Front Camera</a>
+    <a class="button" href="/webcam?cam=back">🎥 Back Camera</a>
+    <a class="button" href="/files">📁 File Browser</a>
+    <a class="button" href="/calls">📞 Call Logs</a>
+    <a class="button" href="/sms">💬 SMS Inbox</a>
+    <a class="button" href="/logout">🚪 Logout</a>
 </body>
+</html>
 '''
 
 # ===== ROUTES =====
 @app.route("/", methods=["GET", "POST"])
 def home():
-    ip = request.remote_addr
+    client_ip = request.remote_addr
     if request.method == "POST":
-        if request.form.get("key") == ACCESS_KEY:
-            authenticated_clients.add(ip)
+        key = request.form.get("key")
+        if key == ACCESS_KEY:
+            authenticated_clients.add(client_ip)
         else:
-            return "<h3>❌ Invalid Key</h3><p>Ask @HackersColony for a valid access key.</p>"
-    if ip not in authenticated_clients:
+            return "<h3>❌ Invalid Key</h3><p>Ask @HackersColony on Telegram for your access key.</p>"
+    if client_ip not in authenticated_clients:
         return login_html
     return panel_html
 
 @app.route("/logout")
 def logout():
-    ip = request.remote_addr
-    authenticated_clients.discard(ip)
-    return "<h3>👋 Logged out. <a href='/'>Back to login</a></h3>"
+    client_ip = request.remote_addr
+    authenticated_clients.discard(client_ip)
+    return "<h3>👋 Logged out.</h3><a href='/'>Back to login</a>"
 
 @app.route("/gps")
 def gps():
     if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
     return jsonify({
-        "lat": "28.6139",
-        "lon": "77.2090",
+        "lat": "28.7041",
+        "lon": "77.1025",
         "timestamp": datetime.now().isoformat()
     })
+
+@app.route("/webcam")
+def webcam():
+    if request.remote_addr not in authenticated_clients:
+        return "❌ Unauthorized"
+    cam_type = request.args.get("cam", "front")
+    return f"<h3>📷 {cam_type.capitalize()} Camera image shown here (simulation)</h3>"
 
 @app.route("/files")
 def files():
     if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    files = ["📁 /Download", "📁 /DCIM", "📄 secret_notes.txt"]
-    return "<h4>📁 File List:</h4><pre>" + "\n".join(files) + "</pre>"
+    files = ["Download/", "DCIM/", "Android/", "WhatsApp/", "secret_notes.txt"]
+    return "<h4>📁 File Browser:</h4><pre>" + "\n".join(files) + "</pre>"
 
 @app.route("/calls")
 def calls():
     if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    logs = ["📞 +91 9999999999 - Incoming", "📞 +91 8888888888 - Outgoing"]
-    return "<h4>📞 Call Logs:</h4><pre>" + "\n".join(logs) + "</pre>"
+    calls = [
+        "📞 +918888000111 - Incoming - 2 min",
+        "📞 +917777000222 - Missed",
+        "📞 +919999000333 - Outgoing - 5 min"
+    ]
+    return "<h4>📞 Call Logs:</h4><pre>" + "\n".join(calls) + "</pre>"
 
 @app.route("/sms")
 def sms():
     if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    messages = ["💬 +91 9876543210: Hi", "💬 +91 1234567890: Send me the code"]
-    return "<h4>💬 SMS Logs:</h4><pre>" + "\n".join(messages) + "</pre>"
-
-@app.route("/webcam/front")
-def front_cam():
-    if request.remote_addr not in authenticated_clients:
-        return "❌ Unauthorized"
-    return "<h3>📷 Front Camera Image (simulated)</h3>"
-
-@app.route("/webcam/back")
-def back_cam():
-    if request.remote_addr not in authenticated_clients:
-        return "❌ Unauthorized"
-    return "<h3>📷 Back Camera Image (simulated)</h3>"
+    messages = [
+        "💬 [Airtel] Recharge successful: ₹199",
+        "💬 [Mom] Call me when you're free",
+        "💬 [Bank] ₹5,000 credited to your A/C"
+    ]
+    return "<h4>💬 SMS Inbox:</h4><pre>" + "\n".join(messages) + "</pre>"
 
 # ===== MAIN =====
 if __name__ == "__main__":
