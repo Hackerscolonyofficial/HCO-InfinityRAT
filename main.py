@@ -7,55 +7,51 @@ app = Flask(__name__)
 ACCESS_KEY = "HCO-KEY-8420611159"
 authenticated_clients = set()
 
-# ===== Dashboard HTML =====
+# ===== Hacker-style Dashboard HTML =====
 panel_html = '''
 <html>
 <head>
     <title>HCO-InfinityRAT Dashboard</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-image: url("https://i.imgur.com/NQ3YhFb.jpg");
-            background-size: cover;
-            background-position: center;
-            font-family: monospace;
+            background-color: #000000;
             color: #00FF00;
+            font-family: monospace;
         }
-        .overlay {
-            background-color: rgba(0,0,0,0.7);
-            padding: 40px;
+        .container {
             margin: 50px auto;
-            width: 70%;
+            padding: 40px;
+            width: 80%;
+            background-color: #111111;
+            border: 2px solid #00FF00;
             border-radius: 10px;
-            box-shadow: 0 0 15px #00FF00;
+            box-shadow: 0 0 10px #00FF00;
         }
         h1 {
             text-align: center;
-            margin-bottom: 30px;
+            color: #00FF00;
         }
         .btn {
             display: block;
             width: 100%;
-            padding: 15px;
+            padding: 12px;
             margin: 10px 0;
-            background-color: black;
-            border: 2px solid #00FF00;
+            background-color: #000;
             color: #00FF00;
-            font-size: 18px;
+            border: 1px solid #00FF00;
             text-align: center;
+            font-size: 16px;
             text-decoration: none;
-            transition: background 0.3s;
         }
         .btn:hover {
             background-color: #00FF00;
-            color: black;
+            color: #000;
         }
     </style>
 </head>
 <body>
-    <div class="overlay">
-        <h1>💻 Hackers Colony Infinity RAT</h1>
+    <div class="container">
+        <h1>💀 HCO-InfinityRAT Control Panel</h1>
         <a class="btn" href="/gps">📍 GPS Location</a>
         <a class="btn" href="/webcam">📷 Capture Webcam</a>
         <a class="btn" href="/files">📁 File Browser</a>
@@ -68,14 +64,14 @@ panel_html = '''
 </html>
 '''
 
-# ===== Login Page HTML =====
+# ===== Login Page =====
 login_html = '''
 <html>
 <head>
-    <title>Enter Access Key</title>
+    <title>Access Key Required</title>
     <style>
         body {
-            background-color: black;
+            background-color: #000;
             color: #00FF00;
             font-family: monospace;
             display: flex;
@@ -85,9 +81,9 @@ login_html = '''
             height: 100vh;
         }
         input {
-            margin: 10px;
             padding: 10px;
-            background: #111;
+            margin: 10px;
+            background-color: #111;
             border: 1px solid #00FF00;
             color: #00FF00;
         }
@@ -102,11 +98,10 @@ login_html = '''
 <body>
     <h2>🔐 Enter Access Key</h2>
     <form method="POST">
-        <input type="password" name="key" placeholder="Access Key" required>
-        <br>
-        <input type="submit" value="Unlock Panel">
+        <input type="password" name="key" placeholder="Access Key" required><br>
+        <input type="submit" value="Unlock">
     </form>
-    <p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your access key.</p>
+    <p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your key.</p>
 </body>
 </html>
 '''
@@ -120,7 +115,7 @@ def home():
         if key == ACCESS_KEY:
             authenticated_clients.add(ip)
         else:
-            return "<h3 style='color:red;'>❌ Invalid Key</h3><p>Contact us for a valid access key.</p>"
+            return "<h3 style='color:red;'>❌ Invalid Key</h3><p>Contact us for access.</p>"
     if ip not in authenticated_clients:
         return login_html
     return panel_html
@@ -135,14 +130,14 @@ def gps():
 def webcam():
     if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    return "<h3 style='color:#00FF00;'>📷 Webcam image will appear here (simulated)</h3>"
+    return "<pre style='color:#00FF00;'>📷 Webcam capture (simulated)</pre>"
 
 @app.route("/files")
 def files():
     if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    files = ["Download/", "Pictures/", "Android/", "secret.txt"]
-    return "<pre style='color:#00FF00;'>📁 File List:\n" + "\n".join(files) + "</pre>"
+    files = ["Download/", "Pictures/", "DCIM/", "secret.txt"]
+    return "<pre style='color:#00FF00;'>📁 Files:\n" + "\n".join(files) + "</pre>"
 
 @app.route("/calls")
 def calls():
@@ -171,8 +166,8 @@ def camera():
     if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
     cam = request.args.get("cam", "front")
-    return f"<h3 style='color:#00FF00;'>📸 {cam.title()} Camera image captured (simulated)</h3>"
+    return f"<pre style='color:#00FF00;'>📸 {cam.title()} Camera image captured (simulated)</pre>"
 
-# ===== Run Server =====
+# ===== Start App =====
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=22533)
