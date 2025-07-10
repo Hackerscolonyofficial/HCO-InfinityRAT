@@ -1,7 +1,5 @@
 # HCO-InfinityRAT-Final
 
-# HCO-InfinityRAT-Final
-
 [![GitHub](https://img.shields.io/badge/GitHub-Hackerscolonyofficial-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Hackerscolonyofficial)  
 [![YouTube](https://img.shields.io/badge/YouTube-HackersColonyOfficial-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@HackersColonyOfficial)  
 [![Instagram](https://img.shields.io/badge/Instagram-hackers_colony_official-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/hackers_colony_official)  
@@ -138,7 +136,3 @@ Licensed under the MIT License. See the LICENSE file for more info.
 - Instagram: https://www.instagram.com/hackers_colony_official  
 - Telegram: https://t.me/hackersColony  
 - Discord: https://discord.gg/Xpq9nCGD
-
----
-
-© 2025 Azhar | Hackers Colony Official
