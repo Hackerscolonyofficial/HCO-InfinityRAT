@@ -3,8 +3,9 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ===== ACCESS KEY SYSTEM =====
-ACCESS_KEY = "HCO-KEY-8420611159"
+# ===== ACCESS KEY (ASCII Encrypted) =====
+ascii_key = [72, 67, 79, 45, 75, 69, 89, 45, 56, 52, 50, 48, 54, 49, 49, 49, 53, 57]
+ACCESS_KEY = ''.join(chr(c) for c in ascii_key)
 authenticated_clients = set()
 
 # ===== HTML DASHBOARD =====
@@ -27,6 +28,7 @@ panel_html = '''
         body {
             background-image: url('https://i.imgur.com/Vh3Yh4B.png');
             background-size: cover;
+            background-position: center;
             color: white;
             font-family: Arial, sans-serif;
             text-align: center;
