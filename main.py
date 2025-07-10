@@ -1,16 +1,14 @@
-from flask import Flask, request, render_template_string, jsonify
-from datetime import datetime
-from dotenv import load_dotenv
-import os
-
-# ===== Load Access Key from .env =====
-load_dotenv()
-ACCESS_KEY = os.getenv("HCO_ACCESS_KEY", "")
-authenticated_clients = set()
+from flask import Flask, request, jsonify
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-# ===== TEMPLATES =====
+# ===== ACCESS KEY & TIME LIMIT =====
+ACCESS_KEY = "HCO-KEY-8420611159"  # Your private access key
+authenticated_clients = {}  # Store IPs + login time
+KEY_EXPIRY = timedelta(hours=24)
+
+# ===== HTML TEMPLATES =====
 login_html = '''
 <head><title>HCO-InfinityRAT</title><link rel="icon" href="https://i.imgur.com/Vh3Yh4B.png"></head>
 <h2>🔐 Enter Access Key</h2>
@@ -18,7 +16,7 @@ login_html = '''
     <input type="password" name="key" placeholder="Access Key" required>
     <input type="submit" value="Unlock">
 </form>
-<p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your key.</p>
+<p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your personal key.</p>
 '''
 
 panel_html = '''
@@ -32,6 +30,16 @@ panel_html = '''
 </ul>
 '''
 
+# ===== HELPER =====
+def is_authenticated(ip):
+    if ip in authenticated_clients:
+        login_time = authenticated_clients[ip]
+        if datetime.now() - login_time < KEY_EXPIRY:
+            return True
+        else:
+            del authenticated_clients[ip]
+    return False
+
 # ===== ROUTES =====
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -39,12 +47,12 @@ def home():
     if request.method == "POST":
         key = request.form.get("key")
         if key == ACCESS_KEY:
-            authenticated_clients.add(client_ip)
+            authenticated_clients[client_ip] = datetime.now()
             log_login(client_ip)
         else:
-            return "<h3>❌ Invalid Key</h3><p>Ask @HackersColony on Telegram for a valid access key.</p>"
+            return "<h3>❌ Invalid Key</h3><p>DM <b>@HackersColony</b> or WhatsApp <b>+91 8420611159</b> to get your access key.</p>"
 
-    if client_ip not in authenticated_clients:
+    if not is_authenticated(client_ip):
         return login_html
 
     return panel_html
@@ -52,12 +60,12 @@ def home():
 @app.route("/logout")
 def logout():
     client_ip = request.remote_addr
-    authenticated_clients.discard(client_ip)
+    authenticated_clients.pop(client_ip, None)
     return "<h3>👋 Logged out.</h3><a href='/'>Back to login</a>"
 
 @app.route("/gps")
 def gps():
-    if request.remote_addr not in authenticated_clients:
+    if not is_authenticated(request.remote_addr):
         return "❌ Unauthorized"
     return jsonify({
         "lat": "28.7041",
@@ -67,20 +75,20 @@ def gps():
 
 @app.route("/webcam")
 def webcam():
-    if request.remote_addr not in authenticated_clients:
+    if not is_authenticated(request.remote_addr):
         return "❌ Unauthorized"
-    return "<h3>📷 Webcam image will be shown here (simulation)</h3>"
+    return "<h3>📷 Webcam image would be shown here (simulation)</h3>"
 
 @app.route("/files")
 def files():
-    if request.remote_addr not in authenticated_clients:
+    if not is_authenticated(request.remote_addr):
         return "❌ Unauthorized"
     fake_files = ["Download/", "Pictures/", "Android/", "secret.txt"]
     return "<h4>📁 File List:</h4><pre>" + "\n".join(fake_files) + "</pre>"
 
 @app.route("/calls")
 def calls():
-    if request.remote_addr not in authenticated_clients:
+    if not is_authenticated(request.remote_addr):
         return "❌ Unauthorized"
     call_logs = [
         "📞 +918888000111 - Incoming - 2 min",
