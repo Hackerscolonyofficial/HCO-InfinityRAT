@@ -3,102 +3,37 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ===== Access Key System =====
-ACCESS_KEY = "HCO-KEY-8420611159"
-authenticated_ips = set()
+# ===== Access Key (Obfuscated) =====
+KEY_CHARS = [72, 67, 79, 45, 75, 69, 89, 45, 56, 52, 50, 48, 54, 49, 49, 49, 53, 57]
+ACCESS_KEY = ''.join([chr(c) for c in KEY_CHARS])
+authenticated_clients = set()
 
-# ===== Dashboard Template =====
-dashboard_html = '''
-<!DOCTYPE html>
-<html>
-<head>
-    <title>HCO-InfinityRAT Panel</title>
-    <style>
-        body {{
-            background: url("https://raw.githubusercontent.com/Hackerscolonyofficial/HCO-InfinityRAT/main/assets/hco_bg.jpg") no-repeat center center fixed;
-            background-size: cover;
-            color: #00FF00;
-            font-family: monospace;
-            text-align: center;
-            padding-top: 50px;
-        }}
-        h1 {{
-            font-size: 36px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            display: inline-block;
-        }}
-        .btn {{
-            display: inline-block;
-            margin: 15px;
-            padding: 14px 24px;
-            background-color: black;
-            border: 2px solid #00FF00;
-            color: #00FF00;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-        }}
-        .btn:hover {{
-            background-color: #00FF00;
-            color: black;
-        }}
-    </style>
-</head>
-<body>
-    <h1>🚀 HCO-InfinityRAT Control Panel</h1><br><br>
-    <a href="/gps" class="btn">📍 Location</a>
-    <a href="/sms" class="btn">💬 SMS</a>
-    <a href="/calls" class="btn">📞 Call Logs</a>
-    <a href="/files" class="btn">📁 Files</a>
-    <a href="/cam_front" class="btn">📷 Front Camera</a>
-    <a href="/cam_back" class="btn">🎥 Back Camera</a>
-    <br><br><a href="/logout" class="btn">🚪 Logout</a>
-</body>
-</html>
-'''
-
-# ===== Login Page Template =====
+# ===== HTML Templates =====
 login_html = '''
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HCO-InfinityRAT Access</title>
+    <title>HCO-InfinityRAT Login</title>
     <style>
         body {{
             background-color: black;
-            color: #00FF00;
+            color: #00ff00;
             font-family: monospace;
             text-align: center;
-            padding-top: 100px;
-        }}
-        h2 {{
-            font-size: 28px;
-        }}
-        form {{
-            margin-top: 30px;
+            padding-top: 80px;
         }}
         input {{
-            padding: 12px;
-            margin: 10px;
-            border-radius: 5px;
-            border: 1px solid #00FF00;
-            background: transparent;
-            color: #00FF00;
+            padding: 8px;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #0f0;
         }}
-        .submit {{
-            background-color: #00FF00;
+        .btn {{
+            padding: 10px 20px;
+            background: #0f0;
             color: black;
-            font-weight: bold;
+            border: none;
             cursor: pointer;
-        }}
-        .submit:hover {{
-            background-color: #0f0;
-        }}
-        p {{
-            margin-top: 40px;
-            font-size: 16px;
         }}
     </style>
 </head>
@@ -106,10 +41,60 @@ login_html = '''
     <h2>🔐 Enter Access Key</h2>
     <form method="POST">
         <input type="password" name="key" placeholder="Access Key" required>
-        <br>
-        <input class="submit" type="submit" value="Unlock">
+        <br><br>
+        <input type="submit" value="Unlock" class="btn">
     </form>
     <p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your key.</p>
+</body>
+</html>
+'''
+
+panel_html = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HCO-InfinityRAT Dashboard</title>
+    <style>
+        body {{
+            background: url("https://i.imgur.com/6Xd2UeK.jpg") no-repeat center center fixed;
+            background-size: cover;
+            font-family: monospace;
+            color: #00ff00;
+            text-align: center;
+            padding-top: 80px;
+        }}
+        h1 {{
+            background-color: rgba(0, 0, 0, 0.7);
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 10px;
+        }}
+        .btn {{
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            background-color: rgba(0, 255, 0, 0.2);
+            color: #0f0;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }}
+        .btn:hover {{
+            background-color: #0f0;
+            color: black;
+        }}
+    </style>
+</head>
+<body>
+    <h1>☣️ Hackers Colony - InfinityRAT Control Panel ☣️</h1><br><br>
+    <a href="/gps" class="btn">📍 GPS Location</a>
+    <a href="/webcam" class="btn">📷 Capture Webcam</a>
+    <a href="/files" class="btn">📁 File Browser</a>
+    <a href="/calls" class="btn">📞 Call Logs</a>
+    <a href="/sms" class="btn">💬 Read SMS</a>
+    <a href="/camera/front" class="btn">📸 Front Cam</a>
+    <a href="/camera/back" class="btn">🎥 Back Cam</a>
 </body>
 </html>
 '''
@@ -118,26 +103,19 @@ login_html = '''
 @app.route("/", methods=["GET", "POST"])
 def home():
     ip = request.remote_addr
-    if ip not in authenticated_ips:
-        if request.method == "POST":
-            key = request.form.get("key")
-            if key == ACCESS_KEY:
-                authenticated_ips.add(ip)
-            else:
-                return "<h3 style='color:red;'>❌ Invalid Key</h3><p style='color:white;'>DM @HackersColony for valid access.</p>"
+    if request.method == "POST":
+        key = request.form.get("key")
+        if key == ACCESS_KEY:
+            authenticated_clients.add(ip)
         else:
-            return login_html
-    return dashboard_html
-
-@app.route("/logout")
-def logout():
-    ip = request.remote_addr
-    authenticated_ips.discard(ip)
-    return "<h3 style='color:lime;'>✅ Logged out. <a href='/'>Login again</a></h3>"
+            return "<h3 style='color:red;'>❌ Invalid Key</h3><p>Contact @HackersColony for access.</p>"
+    if ip not in authenticated_clients:
+        return login_html
+    return panel_html
 
 @app.route("/gps")
 def gps():
-    if request.remote_addr not in authenticated_ips:
+    if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
     return jsonify({
         "lat": "28.7041",
@@ -145,47 +123,36 @@ def gps():
         "timestamp": datetime.now().isoformat()
     })
 
-@app.route("/sms")
-def sms():
-    if request.remote_addr not in authenticated_ips:
+@app.route("/webcam")
+def webcam():
+    if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    messages = [
-        "📩 +918888000111: Hello there!",
-        "📩 +917777000222: Your OTP is 4321",
-        "📩 +919999000333: Call me asap."
-    ]
-    return "<pre>" + "\n".join(messages) + "</pre>"
-
-@app.route("/calls")
-def calls():
-    if request.remote_addr not in authenticated_ips:
-        return "❌ Unauthorized"
-    logs = [
-        "📞 +918888000111 - Incoming - 2 min",
-        "📞 +917777000222 - Missed",
-        "📞 +919999000333 - Outgoing - 5 min"
-    ]
-    return "<pre>" + "\n".join(logs) + "</pre>"
+    return "<h3>📷 Webcam capture simulated here</h3>"
 
 @app.route("/files")
 def files():
-    if request.remote_addr not in authenticated_ips:
+    if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    fake_files = ["📁 Download/", "📁 Pictures/", "📁 Android/", "📄 secret.txt"]
-    return "<pre>" + "\n".join(fake_files) + "</pre>"
+    return "<h3>📁 File list simulated: /Download, /DCIM, /WhatsApp</h3>"
 
-@app.route("/cam_front")
-def cam_front():
-    if request.remote_addr not in authenticated_ips:
+@app.route("/calls")
+def calls():
+    if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    return "<h3>📷 Front camera image will appear here (simulated)</h3>"
+    return "<pre>📞 +918888000111 - Incoming\n📞 +917777000222 - Missed\n📞 +919999000333 - Outgoing</pre>"
 
-@app.route("/cam_back")
-def cam_back():
-    if request.remote_addr not in authenticated_ips:
+@app.route("/sms")
+def sms():
+    if request.remote_addr not in authenticated_clients:
         return "❌ Unauthorized"
-    return "<h3>🎥 Back camera image will appear here (simulated)</h3>"
+    return "<pre>💬 'OTP is 123456'\n💬 'Recharge successful'</pre>"
 
-# ===== Run Server =====
+@app.route("/camera/<side>")
+def camera(side):
+    if request.remote_addr not in authenticated_clients:
+        return "❌ Unauthorized"
+    return f"<h3>📷 Capturing from {side} camera (simulated)</h3>"
+
+# ===== Run =====
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=22533)
