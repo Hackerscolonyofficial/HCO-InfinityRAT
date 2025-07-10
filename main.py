@@ -7,7 +7,49 @@ app = Flask(__name__)
 ACCESS_KEY = "HCO-KEY-8420611159"
 authenticated_clients = set()
 
-# ===== Hacker-style Dashboard HTML =====
+# ===== Login Page =====
+login_html = '''
+<html>
+<head>
+    <title>Access Key Required</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #00FF00;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        input {
+            padding: 10px;
+            margin: 10px;
+            background-color: #111;
+            border: 1px solid #00FF00;
+            color: #00FF00;
+        }
+        input[type="submit"] {
+            cursor: pointer;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>🔐 Enter Access Key</h2>
+    <form method="POST">
+        <input type="password" name="key" placeholder="Access Key" required><br>
+        <input type="submit" value="Unlock">
+    </form>
+    <p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your key.</p>
+</body>
+</html>
+'''
+
+# ===== Control Panel =====
 panel_html = '''
 <html>
 <head>
@@ -60,48 +102,6 @@ panel_html = '''
         <a class="btn" href="/camera?cam=front">📸 Front Camera</a>
         <a class="btn" href="/camera?cam=back">📸 Back Camera</a>
     </div>
-</body>
-</html>
-'''
-
-# ===== Login Page =====
-login_html = '''
-<html>
-<head>
-    <title>Access Key Required</title>
-    <style>
-        body {
-            background-color: #000;
-            color: #00FF00;
-            font-family: monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        input {
-            padding: 10px;
-            margin: 10px;
-            background-color: #111;
-            border: 1px solid #00FF00;
-            color: #00FF00;
-        }
-        input[type="submit"] {
-            cursor: pointer;
-        }
-        h2 {
-            margin-bottom: 20px;
-        }
-    </style>
-</head>
-<body>
-    <h2>🔐 Enter Access Key</h2>
-    <form method="POST">
-        <input type="password" name="key" placeholder="Access Key" required><br>
-        <input type="submit" value="Unlock">
-    </form>
-    <p>📩 DM <b>@HackersColony</b> on Telegram or WhatsApp <b>+91 8420611159</b> to get your key.</p>
 </body>
 </html>
 '''
@@ -168,6 +168,6 @@ def camera():
     cam = request.args.get("cam", "front")
     return f"<pre style='color:#00FF00;'>📸 {cam.title()} Camera image captured (simulated)</pre>"
 
-# ===== Start App =====
+# ===== Start Server =====
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=22533)
